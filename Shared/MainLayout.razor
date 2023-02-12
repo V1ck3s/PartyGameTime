@@ -1,6 +1,9 @@
 ﻿@inherits LayoutComponentBase
+@inject GlobalValuesManager _gvManager;
 
-<MudThemeProvider />
+<MudThemeProvider @bind-IsDarkMode="darkMode"/>
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <MudLayout>
     <MudAppBar Elevation="1">
@@ -10,7 +13,7 @@
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        @*NavMenu*@
+        <NavMenu/>
     </MudDrawer>
     <MudMainContent>
         @Body
@@ -19,10 +22,28 @@
 
 @code {
     bool _drawerOpen = true;
+    bool darkMode = true;
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _gvManager.OnThemeChanged += async () => await ThemeChanged();
+    }
+
+    private async Task ThemeChanged()
+    {
+        darkMode = _gvManager.IsDarkMode;
+        await InvokeAsync(
+            () => 
+            {
+                StateHasChanged();
+            }
+        );
+
     }
 }
 

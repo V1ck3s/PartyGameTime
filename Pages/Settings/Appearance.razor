@@ -1,0 +1,29 @@
+@page "/settings/appearance"
+@inject GlobalValuesManager _gvManager;
+
+<MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Appearance</MudText>
+    <MudText Typo="Typo.body1" Align="Align.Center" GutterBottom="true">Change the appearance of the application</MudText>
+    <MudContainer Class="mt-16">
+        <MudText Typo="Typo.h6" GutterBottom="true">Theme</MudText>
+        <MudGrid Container="true" Spacing="1">
+            <MudItem xs="12" sm="6" md="4" lg="3">
+                <MudPaper Class="pa-4" Elevation="2">
+                    <MudRadioGroup Color="Color.Primary" SelectedOption="_gvManager.IsDarkMode" SelectedOptionChanged="(value) => ChangeThemeMode(value)" T="bool">
+                        <MudRadio Option="false" T="bool">Light</MudRadio>
+                        <MudRadio Option="true" T="bool">Dark</MudRadio>
+                    </MudRadioGroup>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+        @* <MudSwitch Checked="@(_gvManager.IsDarkMode)" CheckedChanged="@((value) => ChangeThemeMode(value))" Color="Color.Primary" Class="ma-4" T="bool" Label="Toggle Light/Dark Mode"/> *@
+    </MudContainer>
+</MudContainer>
+
+@code {
+    private void ChangeThemeMode(bool value)
+    {
+        _gvManager.IsDarkMode = value;
+        StateHasChanged();
+    }
+}

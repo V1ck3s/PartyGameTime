@@ -1,0 +1,57 @@
+@page "/settings/account"
+
+
+
+<MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Account</MudText>
+    <MudGrid Spacing="6" Class="mt-16">
+        <MudItem xs="7">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField T="string" Label="Username" Disabled="true" Text="Username"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" Label="Email" Text="username@email.com"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" Label="New password" Text="username@email.com" InputType="InputType.Password"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField T="string" Label="Confirm new password" Text="username@email.com" InputType="InputType.Password"/>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8">Validate</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+
+        <MudItem xs="5">
+            <MudPaper Class="d-flex flex-column" Style="height:100%;" Outlined="true">
+                <MudList>
+                    <MudListItem>
+                        <MudAvatar Color="Color.Primary">U</MudAvatar>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.AccountCircle">
+                        <div class="d-flex">
+                            <MudText>Username</MudText>
+                            <MudText Class="ml-auto">Username</MudText>
+                        </div>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.AlternateEmail">
+                        <div class="d-flex">
+                            <MudText>E-mail</MudText>
+                            <MudText Class="ml-auto">username@email.com</MudText>
+                        </div>
+                    </MudListItem>
+                    <MudListItem Icon="@Icons.Material.Filled.AttachMoney">
+                        <div class="d-flex">
+                            <MudText>Points</MudText>
+                            <MudText Class="ml-auto">12000</MudText>
+                        </div>
+                    </MudListItem>
+                </MudList>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
