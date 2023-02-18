@@ -1,0 +1,73 @@
+@page "/auth/login"
+@inject AuthStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+@using System.Text.RegularExpressions
+@layout EmptyLayout
+@attribute [AllowAnonymous]
+
+<MudGrid Justify="Justify.Center" Class="pt-16">
+    <MudItem xs="11" sm="8" md="6" lg="4">
+        <MudPaper Class="pa-4" Elevation="0" Outlined="true">
+            <MudGrid Justify="Justify.Center">
+                <MudItem xs="12" Style="text-align: center;">
+                    <MudText Typo="Typo.h4" Class="mb-4">Sign in</MudText>
+                </MudItem>
+                <MudItem xs="12" >
+                    <MudTextField T="string" Variant="Variant.Outlined" Label="Username" Required="true" RequiredError="User name is required !"/>
+                    <MudTextField T="string" Variant="Variant.Outlined" Label="Password" Required="true" RequiredError="Password is required !"/>
+                </MudItem>
+                <MudItem xs="12" Class="pt-0">
+                    <MudLink>Forgot username ?</MudLink>
+                    <br>
+                    <MudLink>Forgot password ?</MudLink>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-space-around flex-grow-1 gap-4">
+                    <MudLink>Create account</MudLink>
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" Class="ml-auto" OnClick="OnNormalLoginClicked">Sign in</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+    
+@code {
+
+    private void OnNormalLoginClicked() {
+        _authenticationStateProvider.FakedSignIn();
+        _navigationManager.NavigateTo("/");
+    }
+    private void OnAdminLoginClicked(MouseEventArgs obj) {
+        _authenticationStateProvider.FakedAdminSignIn();
+        _navigationManager.NavigateTo("/");
+    }
+    
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least of length 8";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
+}

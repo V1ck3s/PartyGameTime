@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.Services;
 
@@ -10,6 +11,12 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<GlobalValuesManager>();
+
+// Authentication services
+builder.Services.AddScoped<PartyGameTime.Core.Auth.AuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<PartyGameTime.Core.Auth.AuthStateProvider>());
+builder.Services.AddAuthorizationCore();
+
 var app = builder.Build();
 
 
