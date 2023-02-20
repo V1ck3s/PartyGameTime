@@ -1,0 +1,17 @@
+version: '3.5'
+
+services:
+  postgres-dev:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      PGDATA: /data/postgres
+    volumes:
+      - postgres-dev:/data/postgres
+    ports:
+      - "127.0.0.1:5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres-dev:
