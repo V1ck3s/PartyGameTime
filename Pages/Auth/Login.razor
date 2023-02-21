@@ -1,7 +1,9 @@
 @page "/auth/login"
-@inject AuthStateProvider _authenticationStateProvider
+@* @inject AuthStateProvider _authenticationStateProvider *@
 @inject NavigationManager _navigationManager
+@inject AccountManager _accountManager
 @using System.Text.RegularExpressions
+@using PartyGameTime.Core.Model
 @layout EmptyLayout
 @attribute [AllowAnonymous]
 
@@ -13,8 +15,8 @@
                     <MudText Typo="Typo.h4" Class="mb-4">Sign in</MudText>
                 </MudItem>
                 <MudItem xs="12" >
-                    <MudTextField T="string" Variant="Variant.Outlined" Label="Username" Required="true" RequiredError="User name is required !"/>
-                    <MudTextField T="string" Variant="Variant.Outlined" Label="Password" Required="true" RequiredError="Password is required !"/>
+                    <MudTextField @bind-Value="username" T="string" Variant="Variant.Outlined" Label="Username" Required="true" RequiredError="User name is required !"/>
+                    <MudTextField @bind-Value="password" T="string" Variant="Variant.Outlined" Label="Password" Required="true" RequiredError="Password is required !"/>
                 </MudItem>
                 <MudItem xs="12" Class="pt-0">
                     <MudLink>Forgot username ?</MudLink>
@@ -33,20 +35,24 @@
     
 @code {
 
-    private void OnNormalLoginClicked() {
-        _authenticationStateProvider.FakedSignIn();
-        _navigationManager.NavigateTo("/");
-    }
-    private void OnAdminLoginClicked(MouseEventArgs obj) {
-        _authenticationStateProvider.FakedAdminSignIn();
-        _navigationManager.NavigateTo("/");
-    }
-    
     bool success;
     string[] errors = { };
     MudTextField<string> pwField1;
     MudForm form;
+    string username;
+    string password;
 
+    private async Task OnNormalLoginClicked()
+    {
+        //TODO Remove create account here when registration is implemented
+        var createdAccount = await _accountManager.CreateAccount(new Account()
+        {
+            UserName = username
+        }, password);
+        var connectionAccount = await _accountManager.SignIn(username, password, false);
+        _navigationManager.NavigateTo("/");
+    }
+    
     private IEnumerable<string> PasswordStrength(string pw)
     {
         if (string.IsNullOrWhiteSpace(pw))
@@ -67,7 +73,9 @@
     private string PasswordMatch(string arg)
     {
         if (pwField1.Value != arg)
+        {
             return "Passwords don't match";
+        }
         return null;
     }
 }
