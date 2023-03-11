@@ -66,7 +66,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddScoped<UserManager<Account>>();
 builder.Services.AddScoped<RoleManager<AccountRole>>();
 builder.Services.AddScoped<SignInManager<Account>>();
-//builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 builder.Services.AddScoped<AccountManager>();
 
 

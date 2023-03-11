@@ -31,34 +31,24 @@ public class BlazorCookieLoginMiddleware
         if (context.Request.Path == "/auth/login" && context.Request.Query.ContainsKey("key"))
         {
             var key = Guid.Parse(context.Request.Query["key"]);
-            var info = BlazorCookieLoginMiddleware.Logins[key];
-
-            //var result = await signInMgr.PasswordSignInAsync(info.Email, info.Password, true, lockoutOnFailure: true);
-            //info.Password = null;
+            var info = Logins[key];
             var result = await signInMgr.PasswordSignInAsync(info.Email, info.Password, true, lockoutOnFailure: false);
             info.Password = null;
             
             if (result.Succeeded)
             {
-                BlazorCookieLoginMiddleware.Logins.Remove(key);
+                Logins.Remove(key);
                 context.Response.Redirect("/");
-                //_navigationManager.NavigateTo("/");
-                
-                //Logins.Remove(key);
-                //context.Response.Redirect("/");
-                //return;
             }
             else if (result.RequiresTwoFactor)
             {
                 //TODO: redirect to 2FA razor component
                 context.Response.Redirect("/auth/loginwith2fa/" + key);
-                return;
             }
             else
             {
                 //TODO: Proper error handling
                 context.Response.Redirect("/auth/loginfailed");
-                return;
             }    
         }     
         else

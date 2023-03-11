@@ -1,5 +1,4 @@
 @page "/auth/login"
-@* @inject AuthStateProvider _authenticationStateProvider *@
 @inject NavigationManager _navigationManager
 @inject AccountManager _accountManager
 @inject UserManager<Account> _userManager
@@ -50,13 +49,12 @@
     private async Task OnNormalLoginClicked()
     {
         //TODO Remove create account here when registration is implemented
-        var createdAccount = await _accountManager.CreateAccount(new Account()
+        await _accountManager.CreateAccount(new Account()
         {
             UserName = username,
             
         }, password);
-        //var connectionAccount = await _accountManager.SignIn(username, password, false);
-        
+
         error = null;
         var usr = await _userManager.FindByNameAsync(username);
         if (usr == null)
@@ -69,7 +67,7 @@
         if (await _signInManager.CanSignInAsync(usr))
         {
             var result = await _signInManager.CheckPasswordSignInAsync(usr, password, true);
-            if (result == Microsoft.AspNetCore.Identity.SignInResult.Success)
+            if (result == SignInResult.Success)
             {
                 Guid key = Guid.NewGuid();
                 BlazorCookieLoginMiddleware.Logins[key] = new LoginInfo { Email = username, Password = password };
@@ -84,9 +82,6 @@
         {
             error = "Your account is blocked";
         }
-        
-        
-        //_navigationManager.NavigateTo("/");
     }
     
     private IEnumerable<string> PasswordStrength(string pw)
