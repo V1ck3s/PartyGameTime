@@ -22,8 +22,7 @@ private readonly UserManager<Account> _account;
         if (user != null && _signInManager.Context.User.Identity.IsAuthenticated)
         {
             var identity = new ClaimsIdentity(new[] {
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Name, user.UserName)
             });
             var principal = new ClaimsPrincipal(identity);
 
@@ -38,5 +37,11 @@ private readonly UserManager<Account> _account;
     public void NotifyAuthenticationStateChanged()
     {
         NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    }
+    
+    public async Task NotifyAuthenticationStateChangedAsync(AuthenticationState authenticationState)
+    {
+        await Task.Yield();
+        NotifyAuthenticationStateChanged(Task.FromResult(authenticationState));
     }
 }

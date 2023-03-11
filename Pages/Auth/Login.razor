@@ -2,7 +2,10 @@
 @* @inject AuthStateProvider _authenticationStateProvider *@
 @inject NavigationManager _navigationManager
 @inject AccountManager _accountManager
+@inject UserManager<Account> _userManager
+@inject SignInManager<Account> _signInManager
 @using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.Identity
 @using PartyGameTime.Core.Model
 @layout EmptyLayout
 @attribute [AllowAnonymous]
@@ -41,16 +44,49 @@
     MudForm form;
     string username;
     string password;
+    
+    private string error;
 
     private async Task OnNormalLoginClicked()
     {
         //TODO Remove create account here when registration is implemented
         var createdAccount = await _accountManager.CreateAccount(new Account()
         {
-            UserName = username
+            UserName = username,
+            
         }, password);
-        var connectionAccount = await _accountManager.SignIn(username, password, false);
-        _navigationManager.NavigateTo("/");
+        //var connectionAccount = await _accountManager.SignIn(username, password, false);
+        
+        error = null;
+        var usr = await _userManager.FindByNameAsync(username);
+        if (usr == null)
+        {
+            error = "User not found";
+            return;
+        }
+
+
+        if (await _signInManager.CanSignInAsync(usr))
+        {
+            var result = await _signInManager.CheckPasswordSignInAsync(usr, password, true);
+            if (result == Microsoft.AspNetCore.Identity.SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                BlazorCookieLoginMiddleware.Logins[key] = new LoginInfo { Email = username, Password = password };
+                _navigationManager.NavigateTo($"/auth/login?key={key}", true);
+            }
+            else
+            {
+                error = "Login failed. Check your password.";
+            }
+        }
+        else
+        {
+            error = "Your account is blocked";
+        }
+        
+        
+        //_navigationManager.NavigateTo("/");
     }
     
     private IEnumerable<string> PasswordStrength(string pw)

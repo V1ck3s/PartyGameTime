@@ -58,7 +58,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/auth/login";
         options.LogoutPath = "/auth/logout";
-        options.AccessDeniedPath = "/auth/login";
+        options.AccessDeniedPath = "/auth/accessdenied";
     });
 // Authentication services end
 
@@ -66,8 +66,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddScoped<UserManager<Account>>();
 builder.Services.AddScoped<RoleManager<AccountRole>>();
 builder.Services.AddScoped<SignInManager<Account>>();
-builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
+//builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 builder.Services.AddScoped<AccountManager>();
+
+
+
 // Services injection end
 
 var app = builder.Build();
@@ -104,6 +107,7 @@ app.UseRouting();
 // Authentication
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<BlazorCookieLoginMiddleware>();
 // Authentication end
 
 app.MapBlazorHub();
