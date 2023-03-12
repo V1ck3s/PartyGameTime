@@ -1,5 +1,5 @@
 @page "/settings/account"
-
+@inject AccountManager _accountManager
 
 
 <MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
@@ -21,6 +21,9 @@
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-center">
                     <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8">Validate</MudButton>
+                </MudItem>
+                <MudItem xs="12" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8" OnClick="LogOut">Log out</MudButton>
                 </MudItem>
             </MudGrid>
         </MudItem>
@@ -54,4 +57,13 @@
         </MudItem>
     </MudGrid>
 </MudContainer>
+
+@code{
+
+    private void LogOut()
+    {
+        _accountManager.SignOut();
+    }
+
+}
 
