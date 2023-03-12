@@ -1,6 +1,7 @@
 @page "/settings/account"
-@inject AccountManager _accountManager
-
+@using System.Security.Claims
+@inject AccountManager AccountManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Account</MudText>
@@ -8,16 +9,16 @@
         <MudItem xs="7">
             <MudGrid>
                 <MudItem xs="12">
-                    <MudTextField T="string" Label="Username" Disabled="true" Text="Username"/>
+                    <MudTextField T="string" Label="Username" Disabled="true" Text="@userName"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField T="string" Label="Email" Text="username@email.com"/>
+                    <MudTextField T="string" Label="Email" Text="@email"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField T="string" Label="New password" Text="username@email.com" InputType="InputType.Password"/>
+                    <MudTextField T="string" Label="New password" Placeholder="password" InputType="InputType.Password"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField T="string" Label="Confirm new password" Text="username@email.com" InputType="InputType.Password"/>
+                    <MudTextField T="string" Label="Confirm new password" Placeholder="password" InputType="InputType.Password"/>
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-center">
                     <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8">Validate</MudButton>
@@ -37,13 +38,13 @@
                     <MudListItem Icon="@Icons.Material.Filled.AccountCircle">
                         <div class="d-flex">
                             <MudText>Username</MudText>
-                            <MudText Class="ml-auto">Username</MudText>
+                            <MudText Class="ml-auto">@userName</MudText>
                         </div>
                     </MudListItem>
                     <MudListItem Icon="@Icons.Material.Filled.AlternateEmail">
                         <div class="d-flex">
                             <MudText>E-mail</MudText>
-                            <MudText Class="ml-auto">username@email.com</MudText>
+                            <MudText Class="ml-auto">@email</MudText>
                         </div>
                     </MudListItem>
                     <MudListItem Icon="@Icons.Material.Filled.AttachMoney">
@@ -60,9 +61,25 @@
 
 @code{
 
+    private string userName = "";
+    private string email = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            if (user.Identity.Name != null) userName = user.Identity.Name;
+
+            email = user.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
+        }
+    }
+    
     private void LogOut()
     {
-        _accountManager.SignOut();
+        AccountManager.SignOut();
     }
 
 }
