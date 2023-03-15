@@ -48,7 +48,12 @@ public class BlazorCookieLoginMiddleware
                 //TODO: Proper error handling
                 context.Response.Redirect("/auth/loginfailed");
             }    
-        }     
+        }
+        else if (context.Request.Path == "/auth/logout")
+        {
+            await signInMgr.SignOutAsync();
+            context.Response.Redirect("/");   
+        }
         else
         {
             await _next.Invoke(context);

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PartyGameTime.Core.Model;
@@ -9,28 +10,21 @@ public class AccountManager
     private readonly UserManager<Account> _account;
     private readonly RoleManager<AccountRole> _accountRole;
     private readonly SignInManager<Account> _signInManager;
+    private readonly NavigationManager _navigationManager;
 
-    public AccountManager(UserManager<Account> account, RoleManager<AccountRole> accountRole, SignInManager<Account> signInManager)
+    public AccountManager(UserManager<Account> account, RoleManager<AccountRole> accountRole, SignInManager<Account> signInManager, NavigationManager navigationManager)
     {
         _account = account;
         _accountRole = accountRole;
         _signInManager = signInManager;
+        _navigationManager = navigationManager;
     }
     
-    public async Task<SignInResult> SignIn(string username, string password, bool rememberMe)
-    {
-        var result = await _signInManager.PasswordSignInAsync(username, password, rememberMe, false);
-        if (result.Succeeded)
-        {
-            return result;
-        }
-
-        return null;
-    }
+    
     
     public async Task SignOut()
     {
-        await _signInManager.SignOutAsync();
+        _navigationManager.NavigateTo("/auth/logout",true);
     }
     
     public async Task<IdentityResult> CreateAccount(Account account, string password)
