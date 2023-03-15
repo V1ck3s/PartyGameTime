@@ -1,0 +1,120 @@
+@page "/auth/register"
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.Identity
+@using PartyGameTime.Core.Model
+
+@inject NavigationManager _navigationManager
+@inject AccountManager _accountManager
+@inject UserManager<Account> _userManager
+@inject SignInManager<Account> _signInManager
+@inject ISnackbar Snackbar
+
+@layout EmptyLayout
+@attribute [AllowAnonymous]
+
+<MudGrid Justify="Justify.Center" Class="pt-16">
+    <MudItem xs="11" sm="8" md="6" lg="4">
+        <MudPaper Class="pa-4" Elevation="0" Outlined="true">
+            <MudForm @bind-IsValid="success">
+                <MudGrid Justify="Justify.Center">
+                        <MudItem xs="12" Style="text-align: center;">
+                            <MudText Typo="Typo.h4" Class="mb-4">Register</MudText>
+                        </MudItem>
+                        <MudItem xs="12" >
+                            <MudTextField @bind-Value="username" T="string" Variant="Variant.Outlined" Label="Username" Required="true" RequiredError="User name is required !"/>
+                            <MudTextField @ref="pwField1" @bind-Value="password" InputType="InputType.Password" T="string" Variant="Variant.Outlined" Label="Password" Required="true" RequiredError="Password is required !" Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"/>
+                            <MudTextField @bind-Value="password2" InputType="InputType.Password" T="string" Variant="Variant.Outlined" Label="Repeat password" Required="true" RequiredError="Password is required !" Validation="@(new Func<string, string>(PasswordMatch))"/>
+                            <MudTextField @bind-Value="email" InputType="InputType.Email" T="string" Variant="Variant.Outlined" Label="Email" Required="true" RequiredError="Email is required !" Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"/>
+                            
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex justify-space-around flex-grow-1 gap-4">
+                            <MudLink Href="/auth/login/">Log in</MudLink>
+
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" Class="ml-auto" Disabled="!success" OnClick="RegisterUser">Register</MudButton>
+                        </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    MudTextField<string> pwField1;
+    string username;
+    string password;
+    string password2;
+    string email;
+    bool success;
+
+    private async Task RegisterUser()
+    {
+        var usr = await _userManager.FindByNameAsync(username);
+        if (usr != null)
+        {
+            Snackbar.Add("Username already exist, choose another one.", Severity.Error);
+            return;
+        }
+        
+        await _accountManager.CreateAccount(new Account()
+        {
+            UserName = username,
+            Email = email
+        }, password);
+        
+        usr = await _userManager.FindByNameAsync(username);
+        if (usr == null)
+        {
+            Snackbar.Add("An error occurred while registering the account.", Severity.Error);
+            return;
+        }
+
+        LoginAfterRegister(usr);
+    }
+    
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be at least of length 8";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
+    
+    private async Task LoginAfterRegister(Account user)
+    {
+        if (await _signInManager.CanSignInAsync(user))
+        {
+            var result = await _signInManager.CheckPasswordSignInAsync(user, password, true);
+            if (result == SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                BlazorCookieLoginMiddleware.Logins[key] = new LoginInfo { Email = username, Password = password };
+                _navigationManager.NavigateTo($"/auth/login?key={key}", true);
+            }
+            else
+            {
+                Snackbar.Add("Login failed. Check your password.", Severity.Error);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Your account is blocked",Severity.Error);
+        }
+    }
+}
