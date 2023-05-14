@@ -2,6 +2,7 @@
 @using System.Security.Claims
 @inject AccountManager AccountManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar _snackbar
 
 <MudContainer Class="mt-16" MaxWidth="MaxWidth.Medium">
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Account</MudText>
@@ -15,13 +16,16 @@
                     <MudTextField T="string" Label="Email" Text="@email"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField T="string" Label="New password" Placeholder="password" InputType="InputType.Password"/>
+                    <MudTextField @bind-Value="currentPassword" T="string" Label="Current password" Placeholder="password" InputType="InputType.Password"/>
                 </MudItem>
                 <MudItem xs="12">
-                    <MudTextField T="string" Label="Confirm new password" Placeholder="password" InputType="InputType.Password"/>
+                    <MudTextField @bind-Value="newPassword" T="string" Label="New password" Placeholder="password" InputType="InputType.Password"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="confirmNewPassword" T="string" Label="Confirm new password" Placeholder="password" InputType="InputType.Password" Error="confirmNewPassword.Equals(newPassword)" ErrorText="The passwords don't match."/>
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-center">
-                    <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8">Validate</MudButton>
+                    <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8" OnClick="UpdateAccount">Validate</MudButton>
                 </MudItem>
                 <MudItem xs="12" Class="d-flex justify-center">
                     <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8" OnClick="LogOut">Log out</MudButton>
@@ -63,6 +67,9 @@
 
     private string userName = "";
     private string email = "";
+    private string currentPassword = "";
+    private string newPassword = "";
+    private string confirmNewPassword = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,6 +87,22 @@
     private void LogOut()
     {
         AccountManager.SignOut();
+    }
+    
+    private async Task UpdateAccount()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            Core.Model.Account account = await AccountManager.GetAccount(userId);
+            account.Email = email;
+            await AccountManager.ChangePassword(account, currentPassword, newPassword);
+            await AccountManager.UpdateAccount(account);
+            _snackbar.Add("Account infos changed sucessfully.", Severity.Success);
+        }
+        
     }
 
 }
