@@ -1,7 +1,10 @@
+@inject AccountManager AccountManager
+
 <MudNavMenu>
     <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
     <MudNavGroup Title="Settings" Expanded="true">
         <MudNavLink Href="/settings/account"  Match="NavLinkMatch.Prefix">Account</MudNavLink>
         <MudNavLink Href="/settings/appearance"  Match="NavLinkMatch.Prefix">Appearance</MudNavLink>
     </MudNavGroup>
+    <MudNavLink OnClick="@(async () => await AccountManager.SignOut())">Logout</MudNavLink>
 </MudNavMenu>
