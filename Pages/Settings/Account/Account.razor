@@ -1,0 +1,81 @@
+@page "/settings/account"
+@using System.Security.Claims
+@using System.ComponentModel.DataAnnotations
+@inject AccountManager AccountManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ISnackbar _snackbar
+@inject IDialogService DialogService
+
+<MudGrid Justify="Justify.Center" Class="mt-16">
+    <MudItem xs="12">
+        <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Account</MudText>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-16 ma-2" Outlined="true">
+            <MudForm @ref="formRef" @bind-IsValid="isValid">
+                <MudGrid>
+                        <MudItem xs="12">
+                            <MudTextField T="string" Label="Username" Disabled="true" Text="@userName" Variant="Variant.Outlined"/>
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField T="string" Label="Email" @bind-Value="@email" Variant="Variant.Outlined" Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"/>
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex justify-left">
+                            <MudLink OnClick="ChangePassword">Change password</MudLink>
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex justify-center">
+                            <MudButton Variant="Variant.Filled" DisableElevation="true" Color="Color.Primary" Size="Size.Large" Class="mt-8" OnClick="UpdateAccount">Validate</MudButton>
+                        </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+
+@code{
+
+    private string userName = "";
+    private string email = "";
+    private bool isValid;
+    private MudForm formRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            if (user.Identity.Name != null) userName = user.Identity.Name;
+            
+            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            Core.Model.Account account = await AccountManager.GetAccount(userId);
+            email = account.Email ?? string.Empty;
+        }
+    }
+    
+    private async Task UpdateAccount()
+    {
+        await formRef.Validate();
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+            Core.Model.Account account = await AccountManager.GetAccount(userId);
+            account.Email = email;
+            await AccountManager.UpdateAccount(account);
+            _snackbar.Add("Account infos changed successfully.", Severity.Success);
+        }
+    }
+
+    private async Task ChangePassword()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        await DialogService.ShowAsync<ChangePasswordDialog>("Change password", options);
+    }
+
+}
+

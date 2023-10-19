@@ -214,4 +214,10 @@ public class AccountManager
         return null;
     }
 
+    public async Task<bool> Checkpassword(Account account, string password)
+    {
+        var result = await _account.CheckPasswordAsync(account, password);
+        return result;
+    }
+
 }
