@@ -307,4 +307,32 @@ public class AccountManager
         var result = await _userManager.CheckPasswordAsync(_account, password);
         return result;
     }
+
+    public async Task<IEnumerable<string>> CheckPasswordStrength(string password)
+    {
+        
+        List<string> passwordErrors = new List<string>();
+
+        var validators = _userManager.PasswordValidators;
+
+        foreach(var validator in validators)
+        {
+            var result = await validator.ValidateAsync(_userManager, null, password);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    passwordErrors.Add(error.Description);   
+                }
+            }
+        }
+        return passwordErrors;
+    }
+
+    public async Task<bool> CheckPasswordStrengthValid(string password)
+    {
+        IEnumerable<string> errors = await CheckPasswordStrength(password);
+        return !errors.Any();
+    }
 }
