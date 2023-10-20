@@ -43,31 +43,26 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity != null && user.Identity.IsAuthenticated)
-        {
-            if (user.Identity.Name != null) userName = user.Identity.Name;
-            
-            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            Core.Model.Account account = await AccountManager.GetAccount(userId);
-            email = account.Email ?? string.Empty;
-        }
+        userName = await AccountManager.GetCurrentUserUsername();
+        email = await AccountManager.GetCurrentUserEmail();
     }
     
     private async Task UpdateAccount()
     {
         await formRef.Validate();
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        if (user.Identity.IsAuthenticated)
+        if (!isValid)
         {
-            string userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            Core.Model.Account account = await AccountManager.GetAccount(userId);
-            account.Email = email;
-            await AccountManager.UpdateAccount(account);
+            return;
+        }
+        try
+        {
+            await AccountManager.SetCurrentUserEmail(email);
+            await AccountManager.UpdateCurrentAccount();
             _snackbar.Add("Account infos changed successfully.", Severity.Success);
+        }
+        catch (Exception exception)
+        {
+            _snackbar.Add("Error :"+exception.Message, Severity.Error);
         }
     }
 

@@ -29,7 +29,7 @@ Contributions are what make the open source community such an amazing place to b
 
 ## 🙇 Author
 #### VickeS
-- Github: [@vic1997](https://github.com/vic1997)
+- Github: [@V1ck3s](https://github.com/V1ck3s)
         
 
 ## ➤ License

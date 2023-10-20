@@ -6,8 +6,6 @@
 
 @inject NavigationManager _navigationManager
 @inject AccountManager _accountManager
-@inject UserManager<Account> _userManager
-@inject SignInManager<Account> _signInManager
 @inject ISnackbar Snackbar
 
 @layout EmptyLayout
@@ -23,7 +21,7 @@
                         </MudItem>
                         <MudItem xs="12" >
                             <MudTextField @bind-Value="username" T="string" Variant="Variant.Outlined" Label="Username" Required="true" RequiredError="User name is required !"/>
-                            <MudTextField @ref="pwField1" @bind-Value="password" InputType="InputType.Password" T="string" Variant="Variant.Outlined" Label="Password" Required="true" RequiredError="Password is required !" Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"/>
+                            <MudTextField @ref="pwField1" @bind-Value="password" InputType="InputType.Password" T="string" Variant="Variant.Outlined" Label="Password" Required="true" RequiredError="Password is required !" Validation="@(new Func<string, Task<IEnumerable<string>>>(async x => await _accountManager.CheckPasswordStrength(x)))"/>
                             <MudTextField @bind-Value="password2" InputType="InputType.Password" T="string" Variant="Variant.Outlined" Label="Repeat password" Required="true" RequiredError="Password is required !" Validation="@(new Func<string, string>(PasswordMatch))"/>
                             <MudTextField @bind-Value="email" InputType="InputType.Email" T="string" Variant="Variant.Outlined" Label="Email" Required="true" RequiredError="Email is required !" Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"/>
                             
@@ -49,7 +47,7 @@
 
     private async Task RegisterUser()
     {
-        var usr = await _userManager.FindByNameAsync(username);
+        var usr = await _accountManager.GetAccountByName(username);
         if (usr != null)
         {
             Snackbar.Add("Username already exist, choose another one.", Severity.Error);
@@ -62,7 +60,7 @@
             Email = email
         }, password);
         
-        usr = await _userManager.FindByNameAsync(username);
+        usr = await _accountManager.GetAccountByName(username);
         if (usr == null)
         {
             Snackbar.Add("An error occurred while registering the account.", Severity.Error);
@@ -70,23 +68,6 @@
         }
 
         LoginAfterRegister(usr);
-    }
-    
-    private IEnumerable<string> PasswordStrength(string pw)
-    {
-        if (string.IsNullOrWhiteSpace(pw))
-        {
-            yield return "Password is required!";
-            yield break;
-        }
-        if (pw.Length < 8)
-            yield return "Password must be at least of length 8";
-        if (!Regex.IsMatch(pw, @"[A-Z]"))
-            yield return "Password must contain at least one capital letter";
-        if (!Regex.IsMatch(pw, @"[a-z]"))
-            yield return "Password must contain at least one lowercase letter";
-        if (!Regex.IsMatch(pw, @"[0-9]"))
-            yield return "Password must contain at least one digit";
     }
 
     private string PasswordMatch(string arg)
@@ -98,9 +79,9 @@
     
     private async Task LoginAfterRegister(Account user)
     {
-        if (await _signInManager.CanSignInAsync(user))
+        if (await _accountManager.CanSignInAsync(user))
         {
-            var result = await _signInManager.CheckPasswordSignInAsync(user, password, true);
+            var result = await _accountManager.CheckPasswordSignInAsync(user, password, true);
             if (result == SignInResult.Success)
             {
                 Guid key = Guid.NewGuid();
