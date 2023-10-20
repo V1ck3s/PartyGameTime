@@ -4,6 +4,7 @@
 @inject ISnackbar _snackbar
 @using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
 @using PartyGameTime.Core.Model
 @layout EmptyLayout
 @attribute [AllowAnonymous]
@@ -11,25 +12,28 @@
 <MudGrid Justify="Justify.Center" Class="pt-16">
     <MudItem xs="11" sm="8" md="6" lg="4">
         <MudPaper Class="pa-4" Elevation="0" Outlined="true">
-            <MudGrid Justify="Justify.Center">
-                <MudItem xs="12" Style="text-align: center;">
-                    <MudText Typo="Typo.h4" Class="mb-4">Sign in</MudText>
-                </MudItem>
-                <MudItem xs="12" >
-                    <MudTextField @bind-Value="username" T="string" Variant="Variant.Outlined" Label="Username" Required="true" RequiredError="User name is required !"/>
-                    <MudTextField @bind-Value="password" InputType="InputType.Password" T="string" Variant="Variant.Outlined" Label="Password" Required="true" RequiredError="Password is required !"/>
-                </MudItem>
-                <MudItem xs="12" Class="pt-0">
-                    <MudLink>Forgot username ?</MudLink>
-                    <br>
-                    <MudLink>Forgot password ?</MudLink>
-                </MudItem>
-                <MudItem xs="12" Class="d-flex justify-space-around flex-grow-1 gap-4">
-                    <MudLink Href="/auth/register/">Create account</MudLink>
+            <MudForm @ref="form" @bind-IsValid="success">
+                <MudGrid Justify="Justify.Center">
+                    <MudItem xs="12" Style="text-align: center;">
+                        <MudText Typo="Typo.h4" Class="mb-4">Sign in</MudText>
+                    </MudItem>
+                    <MudItem xs="12" >
+                        <MudTextField @bind-Value="username" T="string" Variant="Variant.Outlined" Label="Username" Required="true" RequiredError="User name is required !" OnKeyDown="@((x) => x.Key.Equals("Enter") ? OnNormalLoginClicked(): null )"/>
+                        <MudTextField @bind-Value="password" InputType="InputType.Password" T="string" Variant="Variant.Outlined" Label="Password" Required="true" 
+                                      RequiredError="Password is required !" OnKeyDown="@((x) => x.Key.Equals("Enter") ? OnNormalLoginClicked(): null )" />
+                    </MudItem>
+                    <MudItem xs="12" Class="pt-0">
+                        <MudLink>Forgot username ?</MudLink>
+                        <br>
+                        <MudLink>Forgot password ?</MudLink>
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-space-around flex-grow-1 gap-4">
+                        <MudLink Href="/auth/register/">Create account</MudLink>
 
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" Class="ml-auto" OnClick="OnNormalLoginClicked">Sign in</MudButton>
-                </MudItem>
-            </MudGrid>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" DisableElevation="true" Class="ml-auto" OnClick="OnNormalLoginClicked">Sign in</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
         </MudPaper>
     </MudItem>
 </MudGrid>
@@ -44,7 +48,11 @@
 
     private async Task OnNormalLoginClicked()
     {
-
+        await form.Validate();
+        if (!success)
+        {
+            return;
+        }
         var usr = await _accountManager.GetAccountByName(username);
         if (usr == null)
         {
