@@ -9,7 +9,7 @@ namespace PartyGameTime.Core.Auth;
 
 public class AccountManager
 {
-    private readonly UserManager<Account> _accountManager;
+    private readonly UserManager<Account> _userManager;
     private readonly RoleManager<AccountRole> _accountRole;
     private readonly SignInManager<Account> _signInManager;
     private readonly NavigationManager _navigationManager;
@@ -17,12 +17,12 @@ public class AccountManager
 
     public AccountManager(UserManager<Account> account, RoleManager<AccountRole> accountRole, SignInManager<Account> signInManager, NavigationManager navigationManager, AuthenticationStateProvider authenticationStateProvider)
     {
-        _accountManager = account;
+        _userManager = account;
         _accountRole = accountRole;
         _signInManager = signInManager;
         _navigationManager = navigationManager;
         _authenticationStateProvider = authenticationStateProvider;
-        _authenticationStateProvider.AuthenticationStateChanged += Initialize;
+        Initialize();
     }
 
     private AuthenticationState? _authenticationState;
@@ -30,7 +30,7 @@ public class AccountManager
     private string _userId;
     private Core.Model.Account _account;
     
-    private async void Initialize(Task<AuthenticationState> t)
+    private async void Initialize()
     {
         if ((_account is null || _user is null || _authenticationState is null))
         {
@@ -42,7 +42,6 @@ public class AccountManager
                 if (_userId is not null)
                 {
                     _account = await GetAccount(_userId);
-                    _authenticationStateProvider.AuthenticationStateChanged -= Initialize;
                 }
             }
         }
@@ -68,6 +67,11 @@ public class AccountManager
         return _account.Email ?? string.Empty;
     }
     
+    public async Task SetCurrentUserEmail(string email)
+    {
+        _account.Email = email;
+    }
+    
     public async Task SignOut()
     {
         _navigationManager.NavigateTo("/auth/logout",true);
@@ -75,7 +79,7 @@ public class AccountManager
     
     public async Task<IdentityResult> CreateAccount(Account account, string password)
     {
-        var result = await _accountManager.CreateAsync(account, password);
+        var result = await _userManager.CreateAsync(account, password);
         if (result.Succeeded)
         {
             return result;
@@ -97,7 +101,7 @@ public class AccountManager
     
     public async Task<IdentityResult> AddRoleToAccount(Account account, string role)
     {
-        var result = await _accountManager.AddToRoleAsync(account, role);
+        var result = await _userManager.AddToRoleAsync(account, role);
         if (result.Succeeded)
         {
             return result;
@@ -108,7 +112,7 @@ public class AccountManager
     
     public async Task<IdentityResult> RemoveRoleFromAccount(Account account, string role)
     {
-        var result = await _accountManager.RemoveFromRoleAsync(account, role);
+        var result = await _userManager.RemoveFromRoleAsync(account, role);
         if (result.Succeeded)
         {
             return result;
@@ -119,7 +123,7 @@ public class AccountManager
     
     public async Task<IdentityResult> DeleteAccount(Account account)
     {
-        var result = await _accountManager.DeleteAsync(account);
+        var result = await _userManager.DeleteAsync(account);
         if (result.Succeeded)
         {
             return result;
@@ -141,7 +145,7 @@ public class AccountManager
     
     public async Task<Account> GetAccount(string id)
     {
-        var account = await _accountManager.FindByIdAsync(id);
+        var account = await _userManager.FindByIdAsync(id);
         if (account != null)
         {
             return account;
@@ -152,13 +156,23 @@ public class AccountManager
     
     public async Task<Account> GetAccountByName(string name)
     {
-        var account = await _accountManager.FindByNameAsync(name);
+        var account = await _userManager.FindByNameAsync(name);
         if (account != null)
         {
             return account;
         }
 
         return null;
+    }
+
+    public async Task<bool> CanSignInAsync(Account account)
+    {
+        return await _signInManager.CanSignInAsync(account);
+    }
+
+    public async Task<SignInResult> CheckPasswordSignInAsync(Account account, string password, bool lockoutOnFailure)
+    {
+        return await _signInManager.CheckPasswordSignInAsync(account, password, lockoutOnFailure);
     }
     
     public async Task<AccountRole> GetRole(string id)
@@ -185,7 +199,7 @@ public class AccountManager
     
     public async Task<IList<string>> GetRoles(Account account)
     {
-        var roles = await _accountManager.GetRolesAsync(account);
+        var roles = await _userManager.GetRolesAsync(account);
         if (roles != null)
         {
             return roles;
@@ -196,7 +210,7 @@ public class AccountManager
     
     public async Task<IList<Account>> GetAccountsInRole(string role)
     {
-        var accounts = await _accountManager.GetUsersInRoleAsync(role);
+        var accounts = await _userManager.GetUsersInRoleAsync(role);
         if (accounts != null)
         {
             return accounts;
@@ -207,7 +221,7 @@ public class AccountManager
     
     public async Task<IList<Account>> GetAccounts()
     {
-        var accounts = await _accountManager.Users.ToListAsync();
+        var accounts = await _userManager.Users.ToListAsync();
         if (accounts != null)
         {
             return accounts;
@@ -229,7 +243,18 @@ public class AccountManager
     
     public async Task<IdentityResult> UpdateAccount(Account account)
     {
-        var result = await _accountManager.UpdateAsync(account);
+        var result = await _userManager.UpdateAsync(account);
+        if (result.Succeeded)
+        {
+            return result;
+        }
+
+        return null;
+    }
+    
+    public async Task<IdentityResult> UpdateCurrentAccount()
+    {
+        var result = await _userManager.UpdateAsync(_account);
         if (result.Succeeded)
         {
             return result;
@@ -251,7 +276,18 @@ public class AccountManager
     
     public async Task<IdentityResult> ChangePassword(Account account, string currentPassword, string newPassword)
     {
-        var result = await _accountManager.ChangePasswordAsync(account, currentPassword, newPassword);
+        var result = await _userManager.ChangePasswordAsync(account, currentPassword, newPassword);
+        if (result.Succeeded)
+        {
+            return result;
+        }
+
+        return null;
+    }
+    
+    public async Task<IdentityResult> ChangePasswordCurrentUser(string currentPassword, string newPassword)
+    {
+        var result = await _userManager.ChangePasswordAsync(_account, currentPassword, newPassword);
         if (result.Succeeded)
         {
             return result;
@@ -260,10 +296,15 @@ public class AccountManager
         return null;
     }
 
-    public async Task<bool> Checkpassword(Account account, string password)
+    public async Task<bool> CheckPassword(Account account, string password)
     {
-        var result = await _accountManager.CheckPasswordAsync(account, password);
+        var result = await _userManager.CheckPasswordAsync(account, password);
         return result;
     }
-
+    
+    public async Task<bool> CheckPasswordCurrentUser(string password)
+    {
+        var result = await _userManager.CheckPasswordAsync(_account, password);
+        return result;
+    }
 }
