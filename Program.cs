@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using PartyGameTime.Core.Model;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using PartyGameTime.Core.Auth;
+using PartyGameTime.Core.Services.Notifications;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -67,7 +68,7 @@ builder.Services.AddScoped<UserManager<Account>>();
 builder.Services.AddScoped<RoleManager<AccountRole>>();
 builder.Services.AddScoped<SignInManager<Account>>();
 builder.Services.AddScoped<AccountManager>();
-
+builder.Services.AddScoped<NotificationManager>();
 
 
 // Services injection end
