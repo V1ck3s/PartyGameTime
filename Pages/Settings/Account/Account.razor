@@ -48,12 +48,6 @@
     {
         userName = await AccountManager.GetCurrentUserUsername();
         email = await AccountManager.GetCurrentUserEmail();
-        var test = new Notification();
-        test.Content = "Ceci est un test !";
-        test.Title = "Une notif";
-        test.CreatedAt = DateTime.Now;
-        
-        NotificationManager.SendNotification(test);
     }
     
     private async Task UpdateAccount()
