@@ -1,5 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @inject GlobalValuesManager _gvManager;
+@using Components.Specific;
 
 <PageTitle>PartyGameTime</PageTitle>
 
@@ -9,7 +10,7 @@
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
             <MudText Typo="Typo.h5" Class="ml-3">PartyGameTime</MudText>
             <MudSpacer />
-            <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+            <AppBarNotifications />
         </MudAppBar>
         <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
             <NavMenu/>
