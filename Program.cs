@@ -11,13 +11,14 @@ using PartyGameTime.Core.Model;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using PartyGameTime.Core.Auth;
 using PartyGameTime.Core.Services.Notifications;
+using PartyGameTime;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<GlobalValuesManager>();
 
@@ -110,7 +111,7 @@ app.UseAuthorization();
 app.UseMiddleware<BlazorCookieLoginMiddleware>();
 // Authentication end
 
-app.MapBlazorHub();
-app.MapFallbackToPage("/_Host");
-
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+app.UseAntiforgery();
 app.Run();
