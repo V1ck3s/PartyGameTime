@@ -54,6 +54,10 @@ public class BlazorCookieLoginMiddleware
             await signInMgr.SignOutAsync();
             context.Response.Redirect("/");   
         }
+        else if (context.Request.Path == "/Account/Login") // Fix for dotnet 8
+        {
+            context.Response.Redirect("/auth/login");
+        }
         else
         {
             await _next.Invoke(context);
